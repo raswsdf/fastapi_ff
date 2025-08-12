@@ -1,11 +1,20 @@
 from dotenv import load_dotenv
 load_dotenv() #위에 있어야 오류x
 
+import os
 from fastapi import FastAPI
 from .routers import home, users, auth, ai
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# CORS 설정 - 환경 변수로 관리
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173")
+if "," in allowed_origins:
+    # 쉼표로 구분된 여러 도메인 지원
+    cors_origins = [origin.strip() for origin in allowed_origins.split(",")]
+else:
+    cors_origins = [allowed_origins]
 
 # 라우터 등록
 app.include_router(auth.router)
@@ -14,7 +23,7 @@ app.include_router(users.router)
 app.include_router(ai.router) 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # 프론트 도메인
+    allow_origins=cors_origins,  # 환경 변수로 관리
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
